@@ -1,0 +1,65 @@
+name: Build assets
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        description: 'PHP version (taken from composer.json otherwise)'
+        type: string
+      needs-composer-dependencies:
+        description: 'Whether composer dependencies are needed'
+        type: boolean
+        default: false
+    secrets:
+      FLUX_USERNAME:
+        description: 'Flux username'
+        required: true
+      FLUX_LICENSE_KEY:
+        description: 'Flux license key'
+        required: true
+      COMPOSER_AUTH_TOKEN:
+        description: 'Composer auth token'
+        required: true
+jobs:
+  build-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - name: Setup PHP
+        if: ${{ inputs.needs-composer-dependencies }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ inputs.php-version }}
+          extensions: mbstring, dom, fileinfo, mysql
+      - name: Get composer cache directory
+        if: ${{ inputs.needs-composer-dependencies }}
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - name: Add github token to composer config
+        if: ${{ inputs.needs-composer-dependencies }}
+        run: |
+          composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
+          composer config github-oauth.github.com ${{ secrets.COMPOSER_AUTH_TOKEN }} # github code16 organization secret
+      - name: Cache composer dependencies
+        if: ${{ inputs.needs-composer-dependencies }}
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+      - name: Install Composer dependencies
+        run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
+      - name: Install NPM dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Commit Assets
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Assets
+          file_pattern: public/build
+
