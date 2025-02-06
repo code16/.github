@@ -2,6 +2,10 @@ name: Unit tests back
 on:
   workflow_call:
     inputs:
+      slack-webhook-url:
+        description: 'Slack webhook URL'
+        required: true
+        type: string
       php-version:
         description: 'PHP version (taken from composer.json otherwise)'
         type: string
@@ -13,12 +17,15 @@ on:
         type: string
         default: 'php artisan test'
     secrets:
-      SLACK_WEBHOOK_URL:
-        description: 'Slack webhook URL'
+      FLUX_USERNAME:
+        description: 'Flux username'
         required: true
-      COMPOSER_CONFIG:
-        description: 'Additional composer config commands (packages)'
-        required: false
+      FLUX_LICENSE_KEY:
+        description: 'Flux license key'
+        required: true
+      COMPOSER_AUTH_TOKEN:
+        description: 'Composer auth token'
+        required: true
 jobs:
   laravel-tests:
     runs-on: ubuntu-latest
@@ -49,7 +56,7 @@ jobs:
           php-version: ${{ inputs.php-version }}
       - name: Add github token to composer config
         run: |
-          ${{ secrets.COMPOSER_CONFIG }}
+          composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
           composer config github-oauth.github.com ${{ secrets.COMPOSER_AUTH_TOKEN }} # github code16 organization secret
       - name: Get composer cache directory
         id: composer-cache
