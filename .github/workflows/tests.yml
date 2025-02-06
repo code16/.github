@@ -1,0 +1,83 @@
+name: Unit tests back
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        description: 'PHP version (taken from composer.json otherwise)'
+        type: string
+      composer-config:
+        description: 'Additional composer config commands (packages)'
+        type: string
+      test-command:
+        description: 'Test command to run (default: "php artisan test")'
+        type: string
+        default: 'php artisan test'
+    secrets:
+      SLACK_WEBHOOK_URL:
+        description: 'Slack webhook URL'
+        required: true
+jobs:
+  laravel-tests:
+    runs-on: ubuntu-latest
+    env:
+      APP_ENV: testing
+      DB_HOST: 127.0.0.1
+      DB_CONNECTION: mysql
+      DB_DATABASE: our-awesome-tested-app
+      DB_USERNAME: root
+      DB_PASSWORD: password
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: false
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: our-awesome-tested-app
+        ports:
+          - 3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check ray() calls
+        uses: code16/detect-laravel-ray-action@v1
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ inputs.php-version }}
+      - name: Add github token to composer config
+        run: |
+          ${{ inputs.composer-config }}
+          composer config github-oauth.github.com ${{ secrets.COMPOSER_AUTH_TOKEN }} # github code16 organization secret
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+      - name: Install Composer dependencies
+        run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
+      - name: Generate key
+        run: |
+          cp .env.ci .env
+          php artisan key:generate
+      - name: Clear Config
+        run: php artisan config:clear
+      - name: Run Migration
+        run: php artisan migrate -v
+        env:
+          DB_PORT: ${{ job.services.mysql.ports['3306'] }}
+      - name: Execute tests
+        run: ${{ inputs.test-command }}
+        env:
+          DB_PORT: ${{ job.services.mysql.ports['3306'] }}
+      - uses: 8398a7/action-slack@v2.4.0
+        if: failure() && github.event_name == 'pull_request'
+        with:
+          status: failure
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
