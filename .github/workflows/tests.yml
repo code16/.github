@@ -9,9 +9,6 @@ on:
       php-version:
         description: 'PHP version (taken from composer.json otherwise)'
         type: string
-      composer-config:
-        description: 'Additional composer config commands (packages)'
-        type: string
       test-command:
         description: 'Test command to run (default: "php artisan test")'
         type: string
