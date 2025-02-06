@@ -70,7 +70,7 @@ jobs:
       - name: Generate key + .env
         run: |
           touch .env
-          cp .env.ci .env
+          cp .env.ci .env || true
           php artisan key:generate
           echo -e "DB_PORT=${{ job.services.mysql.ports['3306'] }}" >> .env
       - name: Clear Config
