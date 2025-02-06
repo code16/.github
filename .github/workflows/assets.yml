@@ -9,6 +9,10 @@ on:
         description: 'Whether composer dependencies are needed'
         type: boolean
         default: false
+      build-paths:
+        description: 'Paths to the assets'
+        type: string
+        default: 'public/build'
     secrets:
       FLUX_USERNAME:
         description: 'Flux username'
@@ -61,5 +65,5 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Assets
-          file_pattern: public/build
+          file_pattern: ${{ inputs.build-paths }}
 
