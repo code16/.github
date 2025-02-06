@@ -87,5 +87,5 @@ jobs:
           fields: job, message, author
         env:
           MATRIX_CONTEXT: ${{ toJson(matrix) }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ inputs.slack-webhook-url }}
 
