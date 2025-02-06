@@ -5,7 +5,7 @@ on:
       php-version:
         description: 'PHP version (taken from composer.json otherwise)'
         type: string
-      needs-composer-dependencies:
+      install-composer-dependencies:
         description: 'Whether composer dependencies are needed'
         type: boolean
         default: false
@@ -30,22 +30,22 @@ jobs:
           node-version: 20
           cache: 'npm'
       - name: Setup PHP
-        if: ${{ inputs.needs-composer-dependencies }}
+        if: ${{ inputs.install-composer-dependencies }}
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ inputs.php-version }}
           extensions: mbstring, dom, fileinfo, mysql
       - name: Get composer cache directory
-        if: ${{ inputs.needs-composer-dependencies }}
+        if: ${{ inputs.install-composer-dependencies }}
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
       - name: Add github token to composer config
-        if: ${{ inputs.needs-composer-dependencies }}
+        if: ${{ inputs.install-composer-dependencies }}
         run: |
           composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
           composer config github-oauth.github.com ${{ secrets.COMPOSER_AUTH_TOKEN }} # github code16 organization secret
       - name: Cache composer dependencies
-        if: ${{ inputs.needs-composer-dependencies }}
+        if: ${{ inputs.install-composer-dependencies }}
         uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
