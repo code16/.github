@@ -95,7 +95,7 @@ jobs:
         if: failure() && (github.base_ref == 'production' || inputs.is-package)
         with:
           status: ${{ job.status }}
-          fields: job, message, author
+          fields: job, message, author, repo
         env:
           MATRIX_CONTEXT: ${{ toJson(matrix) }}
           SLACK_WEBHOOK_URL: ${{ inputs.slack-webhook-url }}
