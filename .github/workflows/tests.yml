@@ -9,6 +9,10 @@ on:
       php-version:
         description: 'PHP version (taken from composer.json otherwise)'
         type: string
+      is-package:
+        description: 'Whether the project is a package'
+        type: boolean
+        default: false
       test-command:
         description: 'Test command to run (default: "php artisan test")'
         type: string
@@ -67,21 +71,28 @@ jobs:
           restore-keys: ${{ runner.os }}-composer-
       - name: Install Composer dependencies
         run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
-      - name: Generate key + .env
-        run: |
-          touch .env
-          echo -e "APP_KEY=" >> .env
-          cp .env.ci .env || true
-          echo -e "DB_PORT=${{ job.services.mysql.ports['3306'] }}" >> .env
-          php artisan key:generate
+#      - name: Generate key + .env
+#        if: ${{ !inputs.is-package }}
+#        run: |
+#          touch .env
+#          echo -e "APP_KEY=1234" >> .env
+#          cp .env.ci .env || true
+#          echo -e "DB_PORT=${{ job.services.mysql.ports['3306'] }}" >> .env
       - name: Clear Config
+        if: ${{ !inputs.is-package }}
         run: php artisan config:clear
       - name: Run Migration
+        if: ${{ !inputs.is-package }}
         run: php artisan migrate -v
+        env:
+          DB_PORT: ${{ job.services.mysql.ports['3306'] }}
       - name: Execute tests
         run: ${{ inputs.test-command }}
+        env:
+          APP_KEY: 1234
+          DB_PORT: ${{ job.services.mysql.ports['3306'] }}
       - uses: 8398a7/action-slack@v3
-        if: failure() && github.base_ref == 'production'
+        if: failure() && (github.base_ref == 'production' || inputs.is-package)
         with:
           status: ${{ job.status }}
           fields: job, message, author
