@@ -31,6 +31,7 @@ jobs:
   laravel-tests:
     runs-on: ubuntu-latest
     env:
+      APP_KEY: 'base64:sorUHw3uTOYdZXsJhRA13+2dYiSeG90TMkAHyFDKrVk='
       APP_ENV: testing
       DB_HOST: 127.0.0.1
       DB_CONNECTION: mysql
@@ -89,7 +90,6 @@ jobs:
       - name: Execute tests
         run: ${{ inputs.test-command }}
         env:
-          APP_KEY: 1234
           DB_PORT: ${{ job.services.mysql.ports['3306'] }}
       - uses: 8398a7/action-slack@v3
         if: failure() && (github.base_ref == 'production' || inputs.is-package)
