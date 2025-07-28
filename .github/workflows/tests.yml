@@ -4,7 +4,6 @@ on:
     inputs:
       slack-webhook-url:
         description: 'Slack webhook URL'
-        required: true
         type: string
       php-version:
         description: 'PHP version (taken from composer.json otherwise)'
@@ -27,6 +26,8 @@ on:
       COMPOSER_AUTH_TOKEN:
         description: 'Composer auth token'
         required: true
+      SLACK_WEBHOOK_URL:
+        description: 'Slack webhook URL'
 jobs:
   laravel-tests:
     runs-on: ubuntu-latest
