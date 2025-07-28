@@ -57,6 +57,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ inputs.php-version }}
+          github-token: ${{ secrets.COMPOSER_AUTH_TOKEN }}
           extensions: mbstring, dom, fileinfo, mysql
       - name: Add github token to composer config
         run: |
