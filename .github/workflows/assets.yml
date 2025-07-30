@@ -61,10 +61,12 @@ jobs:
         if: ${{ inputs.install-composer-dependencies }}
         run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
       - name: Add SSH key for NPM private repository (optional)
-        if: ${{ secrets.ASSETS_SSH_PRIVATE_KEY }}
+        if: ${{ env.ASSETS_SSH_PRIVATE_KEY != '' }}
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.ASSETS_SSH_PRIVATE_KEY }}
+        env:
+          ASSETS_SSH_PRIVATE_KEY: ${{ secrets.ASSETS_SSH_PRIVATE_KEY }}
       - name: Install NPM dependencies
         run: npm ci
       - name: Build
