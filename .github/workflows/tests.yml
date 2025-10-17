@@ -54,6 +54,14 @@ jobs:
           - 3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
+      - name: Define SLACK_WEBHOOK_URL
+        id: slack-url
+        run: |
+          if [ -n "${{ inputs.slack-webhook-url }}" ]; then
+            echo "SLACK_WEBHOOK_URL=${{ inputs.slack-webhook-url }}" >> $GITHUB_ENV
+          elif [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
+            echo "SLACK_WEBHOOK_URL=${{ secrets.SLACK_WEBHOOK_URL }}" >> $GITHUB_ENV
+          fi
       - uses: actions/checkout@v4
       - name: Check ray() calls
         uses: code16/detect-laravel-ray-action@v1
@@ -98,14 +106,6 @@ jobs:
 #        run: php artisan migrate -v
 #        env:
 #          DB_PORT: ${{ job.services.mysql.ports['3306'] }}
-      - name: Define SLACK_WEBHOOK_URL
-        id: slack-url
-        run: |
-            if [ -n "${{ inputs.slack-webhook-url }}" ]; then
-              echo "SLACK_WEBHOOK_URL=${{ inputs.slack-webhook-url }}" >> $GITHUB_ENV
-            elif [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
-              echo "SLACK_WEBHOOK_URL=${{ secrets.SLACK_WEBHOOK_URL }}" >> $GITHUB_ENV
-            fi
       - name: Execute tests
         run: ${{ inputs.test-command }}
         env:
