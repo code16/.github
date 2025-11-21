@@ -3,7 +3,7 @@ on:
   workflow_call:
     inputs:
       php-version:
-        description: 'PHP version (taken from composer.json otherwise)'
+        description: 'PHP version'
         type: string
       install-composer-dependencies:
         description: 'Whether composer dependencies are needed'
