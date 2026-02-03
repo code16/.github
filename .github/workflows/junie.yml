@@ -28,5 +28,7 @@ jobs:
       - name: Run Junie
         id: junie
         uses: JetBrains/junie-github-action@v0
+        timeout-minutes: 10
         with:
+          model: claude-opus-4-5-20251101
           junie_api_key: ${{ secrets.JUNIE_API_KEY }}
