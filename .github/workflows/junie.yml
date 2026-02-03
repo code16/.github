@@ -31,5 +31,6 @@ jobs:
         timeout-minutes: 15
         with:
 #          model: claude-opus-4-5-20251101
-          model: gpt-5.2-codex
+#          model: gpt-5.2-codex
+          model: gemini-3-pro-preview
           junie_api_key: ${{ secrets.JUNIE_API_KEY }}
