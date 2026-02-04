@@ -21,55 +21,78 @@ jobs:
       issues: write
       id-token: write
       actions: read # Required for Claude to read CI results on PRs
+    timeout-minutes: 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: 1
+         fetch-depth: 0  # Full history for better context
+         ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: PR Review with Progress Tracking
+      - name: Claude Code PR Review
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 
-          # Enable progress tracking
-          track_progress: true
+#          # Enable progress tracking
+#          track_progress: true
 
           # Your custom review instructions
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
 
-            Perform a comprehensive code review with the following focus areas:
+            You are conducting a thorough code review of this pull request.
 
-            1. **Code Quality**
-               - Clean code principles and best practices
-               - Proper error handling and edge cases
-               - Code readability and maintainability
+            **Context:**
+            - PR Title: ${{ github.event.pull_request.title }}
+            - PR Description: ${{ github.event.pull_request.body }}
+            - Author: ${{ github.event.pull_request.user.login }}
 
-            2. **Security**
-               - Check for potential security vulnerabilities
-               - Validate input sanitization
-               - Review authentication/authorization logic
+            **Review Focus Areas:**
 
-            3. **Performance**
-               - Identify potential performance bottlenecks
-               - Review database queries for efficiency
-               - Check for memory leaks or resource issues
+            1. **Correctness**: Logic errors, edge cases, potential bugs
+            2. **Security**: Vulnerabilities, input validation, authentication/authorization
+            3. **Performance**: Inefficient algorithms, unnecessary operations, memory leaks
+            4. **Readability**: Code clarity, naming conventions, comments
+            5. **Maintainability**: Code duplication, modularity, coupling
+            6. **Testing**: Test coverage, test quality, missing test cases
+            7. **Best Practices**: Language idioms, framework conventions, design patterns
+            8. **Breaking Changes**: API compatibility, migration requirements
 
-            4. **Testing**
-               - Verify adequate test coverage
-               - Review test quality and edge cases
-               - Check for missing test scenarios
+            **Instructions:**
 
-            5. **Documentation**
-               - Ensure code is properly documented
-               - Verify README updates for new features
-               - Check API documentation accuracy
+            - Fetch the PR diff and analyze all changes carefully
+            - Leave inline comments on specific lines where issues are found
+            - Use this format for inline comments:
+              - 🔴 **Critical**: Must fix before merge (security, bugs, breaking changes)
+              - 🟡 **Important**: Should fix (performance, maintainability)
+              - 🟢 **Suggestion**: Nice to have (style, optimization)
+              - 💡 **Tip**: Educational comment (best practice, alternative approach)
 
-            Provide detailed feedback using inline comments for specific issues.
-            Use top-level comments for general observations or praise.
+            - For each issue:
+              1. Explain what's wrong and why it matters
+              2. Suggest specific code improvements
+              3. If relevant, provide example code
+
+            - Also provide a summary review comment with:
+              - Overall assessment (Approve / Request Changes / Comment)
+              - Key strengths of the PR
+              - Critical issues requiring attention
+              - Estimated risk level (Low / Medium / High)
+
+            - Be constructive and respectful
+            - Prioritize clarity and actionability over quantity
+            - If code looks good, acknowledge what was done well
+
+            **Tools Available:**
+            Use the GitHub MCP tools to:
+            1. Fetch PR diff
+            2. Add inline comments to pending review
+            3. Submit the review with appropriate status
+
+            Begin your review now.
 
           # Tools for comprehensive PR review
           claude_args: |
-            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+            --allowedTools "mcp__github__get_pull_request_diff,mcp__github__create_pending_pull_request_review,mcp__github__add_comment_to_pending_review,mcp__github__submit_pending_pull_request_review,mcp__github__get_pull_request,mcp__github__list_commits,Read,Glob"
