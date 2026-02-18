@@ -25,6 +25,7 @@ runs:
                 type: mrkdwn
                 text: >-
                   ❌ *Job Failed:* `${{ github.job }}`
+                  
                   *Pull Request:* <${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>
             - type: actions
               elements:
@@ -50,6 +51,7 @@ runs:
                 type: mrkdwn
                 text: >-
                   ❌ *Job Failed:* `${{ github.job }}`
+                  
                   *Branch:* `${{ github.ref_name }}`
             - type: actions
               elements:
