@@ -1,9 +1,9 @@
 name: 'Notify failure slack'
 inputs:
-  slack_bot_token:
+  slack-bot-token:
     description: 'Slack bot token'
     required: true
-  slack_channel_id:
+  slack-channel-id:
     description: 'Slack channel id'
     required: true
 runs:

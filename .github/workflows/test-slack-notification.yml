@@ -15,7 +15,7 @@ jobs:
       - name: Force failure to test notification
         run: exit 1
       - name: Notify Slack
-        uses: code16/.github/.github/actions/slack-notify-failure
+        uses: code16/.github/.github/actions/slack-notify-failure@main
         if: failure()
         with:
           slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}

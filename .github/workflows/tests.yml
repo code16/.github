@@ -116,7 +116,7 @@ jobs:
         env:
           DB_PORT: ${{ job.services.mysql.ports['3306'] }}
       - name: Notify Slack
-        uses: code16/.github/.github/actions/slack-notify-failure
+        uses: code16/.github/.github/actions/slack-notify-failure@main
         if: failure()
         with:
           slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
