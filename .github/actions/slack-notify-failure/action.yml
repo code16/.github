@@ -22,7 +22,12 @@ runs:
             - type: section
               text:
                 type: mrkdwn
-                text: "❌ *Job Failed:* `${{ github.job }}`\n*Workflow:* ${{ github.workflow }}"
+                text: >-
+                  ❌ *Job Failed:* `${{ github.job }}`
+
+                  *Workflow:* ${{ github.workflow }}
+
+                  *Pull Request:* <${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>
             - type: actions
               elements:
                 - type: button
