@@ -12,6 +12,7 @@ runs:
     - name: Notify Slack on Failure
       uses: slackapi/slack-github-action@v2.1.1
       with:
+        errors: true
         method: chat.postMessage
         token: ${{ inputs.slack-bot-token }}
         payload: |
