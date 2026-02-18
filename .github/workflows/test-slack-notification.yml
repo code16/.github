@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Force failure to test notification
         run: exit 1
-      - name: Notify Slack
+      - name: Notify Slack on failure
         uses: code16/.github/.github/actions/slack-notify-failure@main
         if: failure()
         with:
