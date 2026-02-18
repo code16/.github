@@ -9,6 +9,9 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Set run URL
+      shell: bash
+      run: echo "RUN_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
     - name: Notify Slack on Failure (PR)
       uses: slackapi/slack-github-action@v2.1.1
       if: github.event_name == 'pull_request'
@@ -24,7 +27,7 @@ runs:
               text:
                 type: mrkdwn
                 text: >-
-                  ❌ *Job Failed:* `${{ github.job }}`
+                  ❌ *Job Failed:* <${{ env.RUN_URL }}|${{ github.job }}>
                   
                   *Pull Request:* <${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>
             - type: actions
@@ -33,8 +36,7 @@ runs:
                   text:
                     type: plain_text
                     text: "View Failed Job"
-                  style: "danger"
-                  url: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  url: "${{ env.RUN_URL }}"
     - name: Notify Slack on Failure (Push)
       uses: slackapi/slack-github-action@v2.1.1
       if: github.event_name == 'push'
@@ -50,7 +52,7 @@ runs:
               text:
                 type: mrkdwn
                 text: >-
-                  ❌ *Job Failed:* `${{ github.job }}`
+                  ❌ *Job Failed:* <${{ env.RUN_URL }}|${{ github.job }}>
                   
                   *Branch:* `${{ github.ref_name }}`
             - type: actions
@@ -59,6 +61,4 @@ runs:
                   text:
                     type: plain_text
                     text: "View Failed Job"
-                  style: "danger"
-                  url: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-    
+                  url: "${{ env.RUN_URL }}"
