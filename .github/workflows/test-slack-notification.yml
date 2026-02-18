@@ -1,5 +1,4 @@
 name: test-slack-notification
-
 on:
   workflow_dispatch:
     inputs:
@@ -7,7 +6,6 @@ on:
         description: 'Slack channel id'
         required: true
         type: string
-
 jobs:
   test-slack:
     runs-on: ubuntu-latest

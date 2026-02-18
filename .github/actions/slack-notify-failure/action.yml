@@ -13,9 +13,9 @@ runs:
       uses: slackapi/slack-github-action@v2.1.1
       with:
         method: chat.postMessage
-        token: ${{ inputs.slack_bot_token }}
+        token: ${{ inputs.slack-bot-token }}
         payload: |
-          channel: ${{ inputs.slack_channel_id }}
+          channel: ${{ inputs.slack-channel-id }}
           text: "❌ Job Failed: ${{ github.job }}"
           blocks:
             - type: section
