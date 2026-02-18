@@ -1,0 +1,32 @@
+name: 'Notify failure slack'
+inputs:
+  slack_bot_token:
+    description: 'Slack bot token'
+    required: true
+  slack_channel_id:
+    description: 'Slack channel id'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Notify Slack on Failure
+      uses: slackapi/slack-github-action@v2.1.1
+      with:
+        method: chat.postMessage
+        token: ${{ inputs.slack_bot_token }}
+        payload: |
+          channel: ${{ inputs.slack_channel_id }}
+          text: "❌ Job Failed: ${{ github.job }}"
+          blocks:
+            - type: section
+              text:
+                type: mrkdwn
+                text: "❌ *Job Failed:* `${{ github.job }}`\n*Workflow:* ${{ github.workflow }}"
+            - type: actions
+              elements:
+                - type: button
+                  text:
+                    type: plain_text
+                    text: "View Failed Job"
+                  style: "danger"
+                  url: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

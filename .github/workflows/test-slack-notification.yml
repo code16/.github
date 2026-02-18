@@ -1,0 +1,22 @@
+name: test-slack-notification
+
+on:
+  workflow_dispatch:
+    inputs:
+      slack-channel-id:
+        description: 'Slack channel id'
+        required: true
+        type: string
+
+jobs:
+  test-slack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Force failure to test notification
+        run: exit 1
+      - name: Notify Slack
+        uses: code16/.github/.github/actions/slack-notify-failure
+        if: failure()
+        with:
+          slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          slack-channel-id: ${{ inputs.slack-channel-id }}

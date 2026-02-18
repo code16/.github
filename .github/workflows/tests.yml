@@ -2,9 +2,6 @@ name: Unit tests back
 on:
   workflow_call:
     inputs:
-      slack-webhook-url:
-        description: 'Slack webhook URL'
-        type: string
       php-version:
         description: 'PHP version'
         type: string
@@ -20,6 +17,10 @@ on:
         description: 'Test command to run (default: "php artisan test")'
         type: string
         default: 'php artisan test'
+      slack-channel-id:
+        description: 'Slack channel id'
+        type: string
+        required: true
     secrets:
       FLUX_USERNAME:
         description: 'Flux username'
@@ -30,8 +31,9 @@ on:
       COMPOSER_AUTH_TOKEN:
         description: 'Composer auth token'
         required: true
-      SLACK_WEBHOOK_URL:
-        description: 'Slack webhook URL'
+      SLACK_BOT_TOKEN:
+        description: 'Slack bot token'
+        required: true
 jobs:
   laravel-tests:
     runs-on: ubuntu-latest
@@ -113,12 +115,10 @@ jobs:
         run: ${{ inputs.test-command }}
         env:
           DB_PORT: ${{ job.services.mysql.ports['3306'] }}
-      - uses: 8398a7/action-slack@v3
-        if: failure() && (github.base_ref == 'production' || inputs.is-package)
+      - name: Notify Slack
+        uses: code16/.github/.github/actions/slack-notify-failure
+        if: failure()
         with:
-          status: ${{ job.status }}
-          fields: job, message, author, repo
-        env:
-          MATRIX_CONTEXT: ${{ toJson(matrix) }}
-          SLACK_WEBHOOK_URL: ${{ env.SLACK_WEBHOOK_URL }}
+          slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          slack-channel-id: ${{ inputs.slack-channel-id }}
 
