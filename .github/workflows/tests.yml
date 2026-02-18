@@ -115,9 +115,9 @@ jobs:
         run: ${{ inputs.test-command }}
         env:
           DB_PORT: ${{ job.services.mysql.ports['3306'] }}
-      - name: Notify Slack
+      - name: Notify Slack on failure
         uses: code16/.github/.github/actions/slack-notify-failure@main
-        if: failure()
+        if: failure() && (github.base_ref == 'production' || inputs.is-package)
         with:
           slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           slack-channel-id: ${{ inputs.slack-channel-id }}
