@@ -9,9 +9,18 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Set run URL
+    - name: Set job URL
       shell: bash
-      run: echo "RUN_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        JOB_URL=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs" \
+          --jq '.jobs[] | select(.name == "${{ github.job }}") | .html_url' 2>/dev/null || echo "")
+        if [ -z "$JOB_URL" ]; then
+          JOB_URL="$RUN_URL"
+        fi
+        echo "JOB_URL=$JOB_URL" >> $GITHUB_ENV
     - name: Notify Slack on Failure (PR)
       uses: slackapi/slack-github-action@v2.1.1
       if: github.event_name == 'pull_request'
@@ -22,21 +31,23 @@ runs:
         payload: |
           channel: ${{ inputs.slack-channel-id }}
           text: "❌ Job Failed: ${{ github.job }}"
-          blocks:
-            - type: section
-              text:
-                type: mrkdwn
-                text: >-
-                  ❌ *Job Failed:* <${{ env.RUN_URL }}|${{ github.job }}>
-                  
-                  *Pull Request:* <${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>
-            - type: actions
-              elements:
-                - type: button
+          attachments:
+            - color: "danger"
+              blocks:
+                - type: section
                   text:
-                    type: plain_text
-                    text: "View Failed Job"
-                  url: "${{ env.RUN_URL }}"
+                    type: mrkdwn
+                    text: >-
+                      ❌ *Job Failed:* <${{ env.JOB_URL }}|${{ github.job }}>
+                      
+                      *Pull Request:* <${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>
+                - type: actions
+                  elements:
+                    - type: button
+                      text:
+                        type: plain_text
+                        text: "View Failed Job"
+                      url: "${{ env.JOB_URL }}"
     - name: Notify Slack on Failure (Push)
       uses: slackapi/slack-github-action@v2.1.1
       if: github.event_name == 'push'
@@ -47,18 +58,20 @@ runs:
         payload: |
           channel: ${{ inputs.slack-channel-id }}
           text: "❌ Job Failed: ${{ github.job }}"
-          blocks:
-            - type: section
-              text:
-                type: mrkdwn
-                text: >-
-                  ❌ *Job Failed:* <${{ env.RUN_URL }}|${{ github.job }}>
-                  
-                  *Branch:* `${{ github.ref_name }}`
-            - type: actions
-              elements:
-                - type: button
+          attachments:
+            - color: "danger"
+              blocks:
+                - type: section
                   text:
-                    type: plain_text
-                    text: "View Failed Job"
-                  url: "${{ env.RUN_URL }}"
+                    type: mrkdwn
+                    text: >-
+                      ❌ *Job Failed:* <${{ env.JOB_URL }}|${{ github.job }}>
+                      
+                      *Branch:* `${{ github.ref_name }}`
+                - type: actions
+                  elements:
+                    - type: button
+                      text:
+                        type: plain_text
+                        text: "View Failed Job"
+                      url: "${{ env.JOB_URL }}"
