@@ -30,6 +30,7 @@ runs:
         token: ${{ inputs.slack-bot-token }}
         payload: |
           channel: ${{ inputs.slack-channel-id }}
+          text: "Job Failed: ${{ github.job }}"
           attachments:
             - color: "#A30200"
               blocks:
@@ -56,6 +57,7 @@ runs:
         token: ${{ inputs.slack-bot-token }}
         payload: |
           channel: ${{ inputs.slack-channel-id }}
+          text: "Job Failed: ${{ github.job }}"
           attachments:
             - color: "#A30200"
               blocks:
