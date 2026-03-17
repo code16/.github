@@ -24,13 +24,13 @@ on:
     secrets:
       FLUX_USERNAME:
         description: 'Flux username'
-        required: true
+        required: false
       FLUX_LICENSE_KEY:
         description: 'Flux license key'
-        required: true
+        required: false
       COMPOSER_AUTH_TOKEN:
         description: 'Composer auth token'
-        required: true
+        required: false
       SLACK_BOT_TOKEN:
         description: 'Slack bot token'
         required: true
@@ -79,8 +79,12 @@ jobs:
           node-version: lts/*
       - name: Add github token to composer config
         run: |
-          composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
-          composer config github-oauth.github.com ${{ secrets.COMPOSER_AUTH_TOKEN }} # github code16 organization secret
+          if [ -n "${{ secrets.FLUX_USERNAME }}" ] && [ -n "${{ secrets.FLUX_LICENSE_KEY }}" ]; then
+            composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
+          fi
+          if [ -n "${{ secrets.COMPOSER_AUTH_TOKEN }}" ]; then
+            composer config github-oauth.github.com ${{ secrets.COMPOSER_AUTH_TOKEN }} # github code16 organization secret
+          fi
       - name: Get composer cache directory
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
