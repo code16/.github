@@ -10,11 +10,12 @@ runs:
   using: "composite"
   steps:
     - uses: qoomon/actions--context@v4
+      id: context
 
     - name: Set Job URL
       shell: bash
       run: |
-        echo "JOB_URL=${{ env.GITHUB_JOB_HTML_URL || env.GITHUB_RUN_HTML_URL }}" >> $GITHUB_ENV
+        echo "JOB_URL=${{ steps.context.outputs.job_html_url || steps.context.outputs.run_html_url }}" >> $GITHUB_ENV
     - name: Notify Slack on Failure (PR)
       uses: slackapi/slack-github-action@v2.1.1
       if: github.event_name == 'pull_request'
