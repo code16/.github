@@ -9,18 +9,12 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Set job URL
+    - uses: qoomon/actions--context@v4
+
+    - name: Set Job URL
       shell: bash
-      env:
-        GH_TOKEN: ${{ github.token }}
       run: |
-        RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-        JOB_URL=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs" \
-          --jq '.jobs[] | select(.name == "${{ github.job }}") | .html_url' 2>/dev/null || echo "")
-        if [ -z "$JOB_URL" ]; then
-          JOB_URL="$RUN_URL"
-        fi
-        echo "JOB_URL=$JOB_URL" >> $GITHUB_ENV
+        echo "JOB_URL=${{ env.GITHUB_JOB_HTML_URL || env.GITHUB_RUN_HTML_URL }}" >> $GITHUB_ENV
     - name: Notify Slack on Failure (PR)
       uses: slackapi/slack-github-action@v2.1.1
       if: github.event_name == 'pull_request'
