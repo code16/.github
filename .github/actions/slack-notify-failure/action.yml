@@ -17,6 +17,7 @@ runs:
         RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         JOB_URL=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs" \
           --jq '.jobs[] | select(.name == "${{ github.job }}") | .html_url' 2>/dev/null || echo "")
+        echo $(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs")
         if [ -z "$JOB_URL" ]; then
           JOB_URL="$RUN_URL"
         fi
