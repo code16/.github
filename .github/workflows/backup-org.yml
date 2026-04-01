@@ -18,16 +18,25 @@ jobs:
 
 
     steps:
-      - name: Get GitHub User Data
+      - name: Download gitbackup binary
+        run: curl -L -o gitbackup.tar.gz https://github.com/amitsaha/gitbackup/releases/download/v1.1/gitbackup_Linux_arm64.tar.gz
+
+      - name: Extract
+        run: tar -xzf gitbackup.tar.gz
+
+      - name: Make executable
+        run: chmod +x gitbackup
+
+      - name: Run backup
         env:
           GITHUB_TOKEN: ${{ secrets.GITBACKUP_TOKEN }}
         run: |
-          gitbackup \
+          ./gitbackup \
             -service github \
             -github.createUserMigration \
             -ignore-fork \
             -github.repoType owner \
-            -dir /backup
+            -dir /tmp/backup
 
 #      - name: Install AWS CLI
 #        run: |
