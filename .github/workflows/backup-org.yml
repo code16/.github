@@ -29,6 +29,7 @@ jobs:
             -github.createUserMigration \
             -ignore-fork \
             -github.repoType owner \
+            --github.namespaceWhitelist code16 \
             --backupdir /tmp/backup
 
 #      - name: Install AWS CLI
