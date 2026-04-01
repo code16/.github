@@ -10,13 +10,6 @@ jobs:
   org-migration-backupto-s3:
     runs-on: ubuntu-latest
 
-    container:
-      image: ghcr.io/amitsaha/gitbackup:1.1
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
-
     steps:
       - name: Download gitbackup binary
         run: curl -L -o gitbackup.tar.gz https://github.com/amitsaha/gitbackup/releases/download/v1.1/gitbackup_Linux_arm64.tar.gz
