@@ -1,10 +1,10 @@
-name: Backup org
+name: Start an Organization Migration
 
 on:
   workflow_dispatch:
 #  schedule:
-    # At 04:05 everyday
-#    - cron:  '45 4 * * *'
+    # At 02:00 everyday
+#    - cron:  '00 2 * * *'
 
 env:
   # Define the organization name as an environment variable for easy reuse
@@ -53,41 +53,3 @@ jobs:
                
                echo "migration_id=$MIGRATION_ID" >> $GITHUB_OUTPUT
                echo "Started migration with ID: $MIGRATION_ID"
-
-      - name: Poll Migration Status and Download
-        run: |
-          MIGRATION_ID=${{ steps.start_migration.outputs.migration_id }}
-          
-          # Poll the migration status until it is successfully 'exported'
-          while true; do
-            STATUS=$(curl -s \
-              -H "Accept: application/vnd.github+json" \
-              -H "Authorization: Bearer ${{ secrets.GITBACKUP_TOKEN }}" \
-              -H "X-GitHub-Api-Version: 2026-03-10" \
-              https://api.github.com/orgs/$ORG_NAME/migrations/$MIGRATION_ID | jq -r '.state')
-          
-            if [ "$STATUS" == "exported" ]; then
-              echo "Export complete!"
-              break
-            elif [ "$STATUS" == "failed" ]; then
-              echo "Migration failed!"
-              exit 1
-            fi
-          
-            echo "Current status is $STATUS. Waiting 30 seconds..."
-            sleep 30
-          done
-          
-          # Download the migration archive
-          curl -L \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.ORG_ADMIN_TOKEN }}" \
-            -H "X-GitHub-Api-Version: 2026-03-10" \
-            https://api.github.com/orgs/$ORG_NAME/migrations/$MIGRATION_ID/archive \
-            -o org-backup-archive.tar.gz
-
-      - name: Upload Backup to Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: org-backup
-          path: org-backup-archive.tar.gz
