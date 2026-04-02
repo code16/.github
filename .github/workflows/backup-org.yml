@@ -17,42 +17,42 @@ jobs:
       - name: Fetch all repositories and start migration
         id: start_migration
         env:
-          # gh cli requires the GH_TOKEN environment variable
           GH_TOKEN: ${{ secrets.GITBACKUP_TOKEN }}
         run: |
-          # 1. Fetch all repository names dynamically and format as a JSON array
-          echo "Fetching repositories for $ORG_NAME..."
-          REPO_ARRAY=$(gh api --paginate /orgs/$ORG_NAME/repos -H "X-GitHub-Api-Version: 2026-03-10" --jq '[.[].name]')
-          
-          if [ "$REPO_ARRAY" == "[]" ] || [ -z "$REPO_ARRAY" ]; then
-            echo "No repositories found for $ORG_NAME."
-            exit 1
-          fi
+          # 1. Fetch all repositories and use jq -s (slurp) to combine all pages into ONE flat array
+               echo "Fetching repositories for $ORG_NAME..."
+               REPO_ARRAY=$(gh api --paginate /orgs/$ORG_NAME/repos -H "X-GitHub-Api-Version: 2026-03-10" | jq -s '[.[][].name]')
+               
+               if [ "$REPO_ARRAY" == "[]" ] || [ -z "$REPO_ARRAY" ]; then
+               echo "No repositories found for $ORG_NAME."
+               exit 1
+               fi
 
           # 2. Build the JSON payload for the Migrations API using jq
-          PAYLOAD=$(jq -n --argjson repos "$REPO_ARRAY" '{repositories: $repos, lock_repositories: false}')
-          REPO_COUNT=$(echo "$REPO_ARRAY" | jq '. | length')
-          echo "Payload generated for $REPO_COUNT repositories."
+          # --argjson will now receive a single valid array
+               PAYLOAD=$(jq -n --argjson repos "$REPO_ARRAY" '{repositories: $repos, lock_repositories: false}')
+               REPO_COUNT=$(echo "$REPO_ARRAY" | jq '. | length')
+               echo "Payload generated for $REPO_COUNT repositories."
           
           # 3. Start the migration process
-          RESPONSE=$(curl -s -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.GITBACKUP_TOKEN }}" \
-            -H "X-GitHub-Api-Version: 2026-03-10" \
-            https://api.github.com/orgs/$ORG_NAME/migrations \
-            -d "$PAYLOAD")
+               RESPONSE=$(curl -s -X POST \
+               -H "Accept: application/vnd.github+json" \
+               -H "Authorization: Bearer ${{ secrets.GITBACKUP_TOKEN }}" \
+               -H "X-GitHub-Api-Version: 2026-03-10" \
+               https://api.github.com/orgs/$ORG_NAME/migrations \
+               -d "$PAYLOAD")
           
           # 4. Extract the migration ID from the response
-          MIGRATION_ID=$(echo "$RESPONSE" | jq -r '.id')
-          
-          if [ "$MIGRATION_ID" == "null" ] || [ -z "$MIGRATION_ID" ]; then
-            echo "Failed to start migration. API Response:"
-            echo "$RESPONSE"
-            exit 1
-          fi
-          
-          echo "migration_id=$MIGRATION_ID" >> $GITHUB_OUTPUT
-          echo "Started migration with ID: $MIGRATION_ID"
+               MIGRATION_ID=$(echo "$RESPONSE" | jq -r '.id')
+               
+               if [ "$MIGRATION_ID" == "null" ] || [ -z "$MIGRATION_ID" ]; then
+               echo "Failed to start migration. API Response:"
+               echo "$RESPONSE"
+               exit 1
+               fi
+               
+               echo "migration_id=$MIGRATION_ID" >> $GITHUB_OUTPUT
+               echo "Started migration with ID: $MIGRATION_ID"
 
       - name: Poll Migration Status and Download
         run: |
