@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 #  schedule:
     # Runs at 02:30 every day
-#    - cron: '30 2 * * *'
+#    - cron: '00 3 * * *'
 
 env:
   # Define the organization name as an environment variable for easy reuse
