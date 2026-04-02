@@ -21,7 +21,8 @@ jobs:
         run: |
           # 1. Fetch all repositories and use jq -s (slurp) to combine all pages into ONE flat array
                echo "Fetching repositories for $ORG_NAME..."
-               REPO_ARRAY=$(gh api --paginate /orgs/$ORG_NAME/repos -H "X-GitHub-Api-Version: 2026-03-10" | jq -s '[.[][].name]')
+               REPO_ARRAY=$(gh api --paginate /orgs/$ORG_NAME/repos -H "X-GitHub-Api-Version: 2026-03-10" \
+               | jq -s '[.[][] | select(.fork == false and .archived == false) | .name]')
                
                if [ "$REPO_ARRAY" == "[]" ] || [ -z "$REPO_ARRAY" ]; then
                echo "No repositories found for $ORG_NAME."
