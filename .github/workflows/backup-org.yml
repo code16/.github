@@ -1,27 +1,93 @@
 name: Backup org
 
 on:
-  workflow_dispatch:    
+  workflow_dispatch:
 #  schedule:
     # At 04:05 everyday
 #    - cron:  '45 4 * * *'
 
+env:
+  # Define the organization name as an environment variable for easy reuse
+  ORG_NAME: "code16"
+
 jobs:
-  org-migration-backupto-s3:
+  backup-org:
     runs-on: ubuntu-latest
     steps:
-      - name: Get GitHub User Data
-        uses: docker://ghcr.io/amitsaha/gitbackup:latest
+      - name: Fetch all repositories and start migration
+        id: start_migration
         env:
-          GITHUB_TOKEN: ${{ secrets.GITBACKUP_TOKEN}}
-        with:
-          args: -service github -github.createUserMigration -ignore-fork -github.repoType owner -dir .
-      
-
-      - name: Push to S3
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY}}
-          AWS_DEFAULT_REGION: 'ap-southeast-2'
+          # gh cli requires the GH_TOKEN environment variable
+          GH_TOKEN: ${{ secrets.GITBACKUP_TOKEN }}
         run: |
-          aws s3 cp github.com/. s3://gitbackup-echorand/ --recursive --include "*.tar.gz"
+          # 1. Fetch all repository names dynamically and format as a JSON array
+          echo "Fetching repositories for $ORG_NAME..."
+          REPO_ARRAY=$(gh api --paginate /orgs/$ORG_NAME/repos -H "X-GitHub-Api-Version: 2026-03-10" --jq '[.[].name]')
+          
+          if [ "$REPO_ARRAY" == "[]" ] || [ -z "$REPO_ARRAY" ]; then
+            echo "No repositories found for $ORG_NAME."
+            exit 1
+          fi
+
+          # 2. Build the JSON payload for the Migrations API using jq
+          PAYLOAD=$(jq -n --argjson repos "$REPO_ARRAY" '{repositories: $repos, lock_repositories: false}')
+          REPO_COUNT=$(echo "$REPO_ARRAY" | jq '. | length')
+          echo "Payload generated for $REPO_COUNT repositories."
+          
+          # 3. Start the migration process
+          RESPONSE=$(curl -s -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITBACKUP_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            https://api.github.com/orgs/$ORG_NAME/migrations \
+            -d "$PAYLOAD")
+          
+          # 4. Extract the migration ID from the response
+          MIGRATION_ID=$(echo "$RESPONSE" | jq -r '.id')
+          
+          if [ "$MIGRATION_ID" == "null" ] || [ -z "$MIGRATION_ID" ]; then
+            echo "Failed to start migration. API Response:"
+            echo "$RESPONSE"
+            exit 1
+          fi
+          
+          echo "migration_id=$MIGRATION_ID" >> $GITHUB_OUTPUT
+          echo "Started migration with ID: $MIGRATION_ID"
+
+      - name: Poll Migration Status and Download
+        run: |
+          MIGRATION_ID=${{ steps.start_migration.outputs.migration_id }}
+          
+          # Poll the migration status until it is successfully 'exported'
+          while true; do
+            STATUS=$(curl -s \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${{ secrets.GITBACKUP_TOKEN }}" \
+              -H "X-GitHub-Api-Version: 2026-03-10" \
+              https://api.github.com/orgs/$ORG_NAME/migrations/$MIGRATION_ID | jq -r '.state')
+          
+            if [ "$STATUS" == "exported" ]; then
+              echo "Export complete!"
+              break
+            elif [ "$STATUS" == "failed" ]; then
+              echo "Migration failed!"
+              exit 1
+            fi
+          
+            echo "Current status is $STATUS. Waiting 30 seconds..."
+            sleep 30
+          done
+          
+          # Download the migration archive
+          curl -L \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.ORG_ADMIN_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            https://api.github.com/orgs/$ORG_NAME/migrations/$MIGRATION_ID/archive \
+            -o org-backup-archive.tar.gz
+
+      - name: Upload Backup to Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: org-backup
+          path: org-backup-archive.tar.gz
