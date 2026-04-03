@@ -59,9 +59,3 @@ jobs:
             https://api.github.com/orgs/$ORG_NAME/migrations/$MIGRATION_ID/archive \
             -o org-backup-archive.tar.gz
 
-      - name: Upload Backup to Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: org-backup-latest
-          path: org-backup-archive.tar.gz
-
