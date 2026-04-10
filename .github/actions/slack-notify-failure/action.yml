@@ -17,7 +17,7 @@ runs:
       run: |
         echo "JOB_URL=${{ steps.context.outputs.job_html_url || steps.context.outputs.run_html_url }}" >> $GITHUB_ENV
     - name: Notify Slack on Failure (PR)
-      uses: slackapi/slack-github-action@v2.1.1
+      uses: slackapi/slack-github-action@v3
       if: github.event_name == 'pull_request'
       with:
         errors: true

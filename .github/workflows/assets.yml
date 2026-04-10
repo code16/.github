@@ -29,9 +29,9 @@ jobs:
   build-assets:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: 'npm'
@@ -41,28 +41,32 @@ jobs:
         with:
           php-version: ${{ inputs.php-version }}
           extensions: mbstring, dom, fileinfo, mysql
-      - name: Get composer cache directory
-        if: ${{ inputs.install-composer-dependencies }}
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
       - name: Add github token to composer config
         if: ${{ inputs.install-composer-dependencies }}
         run: |
-          composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
-          composer config github-oauth.github.com ${{ secrets.COMPOSER_AUTH_TOKEN }} # github code16 organization secret
+          if [ -n "${{ secrets.FLUX_USERNAME }}" ] && [ -n "${{ secrets.FLUX_LICENSE_KEY }}" ]; then
+            composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
+          fi
+          if [ -n "${{ secrets.COMPOSER_AUTH_TOKEN }}" ]; then
+            composer config github-oauth.github.com ${{ secrets.COMPOSER_AUTH_TOKEN }} # github code16 organization secret
+          fi
+      - name: Get composer cache directory
+        if: ${{ inputs.install-composer-dependencies }}
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
       - name: Cache composer dependencies
         if: ${{ inputs.install-composer-dependencies }}
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock', '**/composer.json') }}
           restore-keys: ${{ runner.os }}-composer-
       - name: Install Composer dependencies
         if: ${{ inputs.install-composer-dependencies }}
-        run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader
+        run: composer install --prefer-dist
       - name: Add SSH key for NPM private repository (optional)
         if: ${{ env.ASSETS_SSH_PRIVATE_KEY != '' }}
-        uses: webfactory/ssh-agent@v0.9.0
+        uses: webfactory/ssh-agent@v0.10.0
         with:
           ssh-private-key: ${{ secrets.ASSETS_SSH_PRIVATE_KEY }}
         env:
