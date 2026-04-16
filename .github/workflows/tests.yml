@@ -109,8 +109,9 @@ jobs:
 #          DB_PORT: ${{ job.services.mysql.ports['3306'] }}
       - name: Execute tests
         run: |
-          if [ -n "${{ inputs.test-command }}" ]; then
-            ${{ inputs.test-command }}
+          TEST_COMMAND="${{ inputs.test-command }}"
+          if [ -n "$TEST_COMMAND" ]; then
+            $TEST_COMMAND
           elif [ -f ./vendor/bin/pest ]; then
             ./vendor/bin/pest
           else
