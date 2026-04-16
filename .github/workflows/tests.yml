@@ -113,7 +113,7 @@ jobs:
           if [ -n "$TEST_COMMAND" ]; then
             eval "$TEST_COMMAND"
           elif [ -f ./vendor/bin/pest ]; then
-            ./vendor/bin/pest
+            ./vendor/bin/pest --ci
           else
             ./vendor/bin/phpunit --colors=never
           fi
