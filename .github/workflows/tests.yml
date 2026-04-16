@@ -120,6 +120,7 @@ jobs:
         env:
           DB_PORT: ${{ job.services.mysql.ports['3306'] }}
       - if: ${{ inputs.has-browser-tests && failure() }}
+        uses: actions/upload-artifact@v4
         continue-on-error: true
         with:
           name: browser-tests-screenshots
