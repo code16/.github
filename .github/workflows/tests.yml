@@ -115,7 +115,7 @@ jobs:
           elif [ -f ./vendor/bin/pest ]; then
             ./vendor/bin/pest
           else
-            ./vendor/bin/phpunit
+            ./vendor/bin/phpunit --colors=never
           fi
         env:
           DB_PORT: ${{ job.services.mysql.ports['3306'] }}
