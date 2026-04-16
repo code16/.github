@@ -119,6 +119,11 @@ jobs:
           fi
         env:
           DB_PORT: ${{ job.services.mysql.ports['3306'] }}
+      - if: ${{ inputs.has-browser-tests && failure() }}
+        continue-on-error: true
+        with:
+          name: browser-tests-screenshots
+          path: tests/Browser/Screenshots
       - name: Notify Slack on failure
         uses: code16/.github/.github/actions/slack-notify-failure@main
         if: failure() && (github.base_ref == 'production' || inputs.is-package)
