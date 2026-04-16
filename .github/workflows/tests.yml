@@ -14,9 +14,9 @@ on:
         type: boolean
         default: false
       test-command:
-        description: 'Test command to run (default: "php artisan test")'
+        description: 'Test command to run'
         type: string
-        default: 'php artisan test'
+        required: false
       slack-channel-id:
         description: 'Slack channel id'
         type: string
@@ -108,7 +108,14 @@ jobs:
 #        env:
 #          DB_PORT: ${{ job.services.mysql.ports['3306'] }}
       - name: Execute tests
-        run: ${{ inputs.test-command }}
+        run: |
+          if [ -n "${{ inputs.test-command }}" ]; then
+            ${{ inputs.test-command }}
+          elif [ -f ./vendor/bin/pest ]; then
+            ./vendor/bin/pest
+          else
+            ./vendor/bin/phpunit
+          fi
         env:
           DB_PORT: ${{ job.services.mysql.ports['3306'] }}
       - name: Notify Slack on failure
