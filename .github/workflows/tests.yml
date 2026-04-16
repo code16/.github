@@ -111,7 +111,7 @@ jobs:
         run: |
           TEST_COMMAND="${{ inputs.test-command }}"
           if [ -n "$TEST_COMMAND" ]; then
-            $TEST_COMMAND
+            eval "$TEST_COMMAND"
           elif [ -f ./vendor/bin/pest ]; then
             ./vendor/bin/pest
           else
