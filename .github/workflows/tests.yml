@@ -126,6 +126,7 @@ jobs:
           name: browser-tests-screenshots-logs
           path: |
             tests/Browser/Screenshots
+            tests/Browser/Tracing
             storage/logs
       - name: Notify Slack on failure
         uses: code16/.github/.github/actions/slack-notify-failure@main
