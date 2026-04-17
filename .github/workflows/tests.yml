@@ -123,8 +123,10 @@ jobs:
         uses: actions/upload-artifact@v4
         continue-on-error: true
         with:
-          name: browser-tests-screenshots
-          path: tests/Browser/Screenshots
+          name: browser-tests-screenshots-logs
+          path: |
+            tests/Browser/Screenshots
+            storage/logs
       - name: Notify Slack on failure
         uses: code16/.github/.github/actions/slack-notify-failure@main
         if: failure() && (github.base_ref == 'production' || inputs.is-package)
