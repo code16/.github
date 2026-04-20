@@ -69,6 +69,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: lts/*
+          cache: 'npm'
       - name: Add github token to composer config
         run: |
           if [ -n "${{ secrets.FLUX_USERNAME }}" ] && [ -n "${{ secrets.FLUX_LICENSE_KEY }}" ]; then
@@ -127,6 +128,7 @@ jobs:
           path: |
             tests/Browser/Screenshots
             tests/Browser/Tracing
+            tests/Browser/Traces
             storage/logs
       - name: Notify Slack on failure
         uses: code16/.github/.github/actions/slack-notify-failure@main
