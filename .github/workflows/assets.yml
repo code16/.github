@@ -25,9 +25,12 @@ on:
         required: true
       ASSETS_SSH_PRIVATE_KEY:
         description: 'Allow to add SSH private key to install private NPM repo'
+        required: false
 jobs:
   build-assets:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v6
       - name: Setup Node.js
@@ -76,8 +79,15 @@ jobs:
       - name: Build
         run: npm run build
       - name: Commit Assets
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: Assets
-          file_pattern: ${{ inputs.build-paths }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ${{ inputs.build-paths }}
+          
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "Assets"
+            git push
+          else
+            echo "Nothing to commit"
+          fi
 
