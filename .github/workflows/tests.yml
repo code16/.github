@@ -21,6 +21,10 @@ on:
         description: 'Slack channel id'
         type: string
         required: true
+      update-shards:
+        description: 'Whether to update shards'
+        type: boolean
+        default: false
     secrets:
       FLUX_USERNAME:
         description: 'Flux username'
@@ -110,16 +114,30 @@ jobs:
 #          DB_PORT: ${{ job.services.mysql.ports['3306'] }}
       - name: Execute tests
         run: |
-          TEST_COMMAND="${{ inputs.test-command }}"
-          if [ -n "$TEST_COMMAND" ]; then
-            eval "$TEST_COMMAND"
+          if [ -n "${{ inputs.test-command }}" ]; then
+            eval "${{ inputs.test-command }}"
           elif [ -f ./vendor/bin/pest ]; then
-            ./vendor/bin/pest --ci
+            ./vendor/bin/pest --ci ${{ inputs.update-shards == true && '--update-shards' || '' }}
           else
             ./vendor/bin/phpunit --colors=never
           fi
         env:
           DB_PORT: ${{ job.services.mysql.ports['3306'] }}
+      - name: Commit shards.json
+        if: ${{ inputs.update-shards }}
+        run: |
+          git add tests/.pest/shards.json
+
+          if [ -n "$(git status --porcelain)" ]; then
+            git \
+              -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -m "Update shards.json" \
+              --author="${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>"
+            git push
+          else
+            echo "Nothing to commit"
+          fi
       - if: ${{ inputs.has-browser-tests && failure() }}
         uses: actions/upload-artifact@v4
         continue-on-error: true
