@@ -21,6 +21,10 @@ on:
         description: 'Slack channel id'
         type: string
         required: true
+      shard:
+        description: 'Shard parameter passed to Pest (e.g. "1/4")'
+        type: string
+        default: ''
       update-shards:
         description: 'Whether to update shards'
         type: boolean
@@ -117,7 +121,9 @@ jobs:
           if [ -n "${{ inputs.test-command }}" ]; then
             eval "${{ inputs.test-command }}"
           elif [ -f ./vendor/bin/pest ]; then
-            ./vendor/bin/pest --ci ${{ inputs.update-shards == true && '--update-shards' || '' }}
+            ./vendor/bin/pest --ci \
+              ${{ inputs.update-shards == true && '--update-shards' || '' }} \
+              ${{ inputs.shard != '' && format('--shard={0}', inputs.shard) || '' }}
           else
             ./vendor/bin/phpunit --colors=never
           fi
