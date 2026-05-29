@@ -3,7 +3,7 @@
 # Required Secrets:
 # - GITHUB_REPOSITORIES_TOKEN_CU: A Personal Access Token with 'repo' scope to checkout and create PRs in other repositories.
 
-name: Composer Audit & PR
+name: Composer Update Vulnerabilities
 on:
   workflow_dispatch:
     inputs:
