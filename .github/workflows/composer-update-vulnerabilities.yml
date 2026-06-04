@@ -59,7 +59,7 @@ jobs:
         id: audit
         run: |
           # Get the list of packages with security advisories
-          VULNERABLE_PACKAGES=$(composer audit --format=json 2>/dev/null | jq -r '.advisories | keys | .[]' | tr '\n' ' ')
+          VULNERABLE_PACKAGES=$(composer audit --locked --format=json 2>/dev/null | jq -r '.advisories | keys | .[]' | tr '\n' ' ')
           
           if [ -n "$VULNERABLE_PACKAGES" ]; then
             echo "Vulnerable packages found: $VULNERABLE_PACKAGES"
