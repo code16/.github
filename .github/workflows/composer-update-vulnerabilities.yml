@@ -1,7 +1,7 @@
 # This workflow runs a composer audit on a list of repositories and creates a PR if composer.lock is updated.
 #
 # Required Secrets:
-# - GITHUB_REPOSITORIES_TOKEN_CU: A Personal Access Token with 'repo' scope to checkout and create PRs in other repositories.
+# - GH_REPOSITORIES_TOKEN_CU: A Personal Access Token with 'repo' scope to checkout and create PRs in other repositories.
 
 name: Composer Update Vulnerabilities
 on:
@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ matrix.repo }}
-          token: ${{ secrets.GITHUB_REPOSITORIES_TOKEN_CU || github.token }}
+          token: ${{ secrets.GH_REPOSITORIES_TOKEN_CU || github.token }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -75,7 +75,7 @@ jobs:
 
 #      - name: Create Pull Request
 #        env:
-#          GH_TOKEN: ${{ secrets.GITHUB_REPOSITORIES_TOKEN_CU || github.token }}
+#          GH_TOKEN: ${{ secrets.GH_REPOSITORIES_TOKEN_CU || github.token }}
 #          VULNERABLE_PACKAGES: ${{ steps.audit.outputs.vulnerable_packages }}
 #        run: |
 #          if [ -n "$(git status --porcelain composer.lock)" ]; then
