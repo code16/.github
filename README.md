@@ -10,20 +10,23 @@ npm run pin-actions
 
 ### Update already pinned actions
 
-Update from
+Update from:
 
 ```yaml
 - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
 ```
 
-To
+To:
 
 ```yaml
 - uses: actions/setup-node@v7
 ```
 
-Then run `npm run pin-actions`
+Then run:
 
+```shell
+npm run pin-actions
+```
 
 ### Add github token (API rate limit)
 
