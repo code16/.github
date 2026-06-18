@@ -6,7 +6,7 @@ on:
         description: 'Slack channel id'
         required: true
         type: string
-  pull_request:
+#  pull_request:
 jobs:
   test-slack:
     runs-on: ubuntu-latest
