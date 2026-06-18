@@ -9,7 +9,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: qoomon/actions--context@v5
+    - uses: qoomon/actions--context@e12e182be797e3476990faf801dd1b87f107f91c # v5
       id: context
 
     - name: Set Job URL
@@ -17,7 +17,7 @@ runs:
       run: |
         echo "JOB_URL=${{ steps.context.outputs.job_html_url || steps.context.outputs.run_html_url }}" >> $GITHUB_ENV
     - name: Notify Slack on Failure (PR)
-      uses: slackapi/slack-github-action@v3
+      uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3
       if: github.event_name == 'pull_request'
       with:
         errors: true
@@ -44,7 +44,7 @@ runs:
                         text: "View Failed Job"
                       url: "${{ env.JOB_URL }}"
     - name: Notify Slack on Failure (Push)
-      uses: slackapi/slack-github-action@v2.1.1
+      uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3
       if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
       with:
         errors: true
