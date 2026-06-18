@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "pin-actions": "dotenv -- pin-github-action .github/workflows/assets.yml .github/workflows/tests.yml .github/workflows/junie.yml .github/actions/slack-notify-failure/action.yml --allow \"code16/**\""
+    "pin-actions": "dotenv -- pin-github-action .github/workflows/ .github/actions/ --recursive --allow \"code16/**\""
   },
   "dependencies": {
     "dotenv-cli": "^11.0.0",
