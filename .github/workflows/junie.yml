@@ -27,7 +27,7 @@ jobs:
 
       - name: Run Junie
         id: junie
-        uses: JetBrains/junie-github-action@1b8425fc424631906a0dc4c4238c43cb7ffb081f # v1
+        uses: JetBrains/junie-github-action@c2ae82fc9fbe0eb81942ceb3d9bd3f89a6b17b95 # v1
         with:
 #          model: claude-opus-4-5-20251101
 #          model: gpt-5.2-codex
