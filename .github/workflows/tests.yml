@@ -13,6 +13,10 @@ on:
         description: 'Does the project have Pest Browser tests (e2e)? if so it will install node + playwright'
         type: boolean
         default: false
+      has-browsershot:
+        description: 'Does the project use Spatie Browsershot? if so it will install node + puppeteer + chrome'
+        type: boolean
+        default: false
       test-command:
         description: 'Test command to run'
         type: string
@@ -75,7 +79,7 @@ jobs:
           php-version: ${{ inputs.php-version }}
           github-token: ${{ secrets.COMPOSER_AUTH_TOKEN }}
           extensions: mbstring, dom, fileinfo, mysql
-      - if: ${{ inputs.has-browser-tests }}
+      - if: ${{ inputs.has-browser-tests || inputs.has-browsershot }}
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: lts/*
@@ -107,6 +111,11 @@ jobs:
       - if: ${{ inputs.has-browser-tests }}
         name: Install Playwright Browsers
         run: npx playwright install chromium --with-deps
+      - if: ${{ inputs.has-browsershot }}
+        name: Install Puppeteer (Browsershot)
+        run: |
+          npm install --no-save puppeteer
+          npx puppeteer browsers install chrome --install-deps
       - if: ${{ inputs.has-browser-tests }}
         name: Build assets
         run: npm run build
