@@ -116,6 +116,7 @@ jobs:
         run: |
           npm install --no-save puppeteer
           npx puppeteer browsers install chrome
+          npx puppeteer browsers install chrome-headless-shell
       - if: ${{ inputs.has-browser-tests }}
         name: Build assets
         run: npm run build
