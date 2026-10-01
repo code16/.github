@@ -115,7 +115,7 @@ jobs:
         name: Install Puppeteer (Browsershot)
         run: |
           npm install --no-save puppeteer
-          npx puppeteer browsers install chrome --install-deps
+          npx puppeteer browsers install chrome
       - if: ${{ inputs.has-browser-tests }}
         name: Build assets
         run: npm run build
