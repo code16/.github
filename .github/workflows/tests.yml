@@ -21,6 +21,10 @@ on:
         description: 'Test command to run'
         type: string
         required: false
+      setup-command:
+        description: 'Command run once the dependencies are installed, before the tests (e.g. to install project specific tools)'
+        type: string
+        required: false
       slack-channel-id:
         description: 'Slack channel id'
         type: string
@@ -120,6 +124,9 @@ jobs:
       - if: ${{ inputs.has-browser-tests }}
         name: Build assets
         run: npm run build
+      - if: ${{ inputs.setup-command }}
+        name: Project setup
+        run: ${{ inputs.setup-command }}
       - name: Create .env
         if: ${{ !inputs.is-package }}
         run: touch .env
