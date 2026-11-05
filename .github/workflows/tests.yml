@@ -109,22 +109,26 @@ jobs:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock', '**/composer.json') }}
           restore-keys: ${{ runner.os }}-composer-
-      - name: Install Composer dependencies
-        run: composer install --prefer-dist
+      - parallel:
+          - name: Install Composer dependencies
+            run: composer install --prefer-dist
+          # Node steps share node_modules, so they stay sequential within a single step
+          - if: ${{ inputs.has-browser-tests || inputs.has-browsershot }}
+            name: Install NPM dependencies and browsers
+            run: |
+              if [ "${{ inputs.has-browser-tests }}" = "true" ]; then
+                npm ci
+              fi
+              if [ "${{ inputs.has-browsershot }}" = "true" ]; then
+                npm install --no-save puppeteer
+                npx puppeteer browsers install chrome
+                npx puppeteer browsers install chrome-headless-shell
+              fi
+              if [ "${{ inputs.has-browser-tests }}" = "true" ]; then
+                npx playwright install chromium --with-deps
+              fi
       - name: Run Security Audit
         run: composer audit
-      - if: ${{ inputs.has-browser-tests }}
-        name: Install NPM dependencies
-        run: npm ci
-      - if: ${{ inputs.has-browser-tests }}
-        name: Install Playwright Browsers
-        run: npx playwright install chromium --with-deps
-      - if: ${{ inputs.has-browsershot }}
-        name: Install Puppeteer (Browsershot)
-        run: |
-          npm install --no-save puppeteer
-          npx puppeteer browsers install chrome
-          npx puppeteer browsers install chrome-headless-shell
       - if: ${{ inputs.has-browser-tests }}
         name: Build assets
         run: npm run build
