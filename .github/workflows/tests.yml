@@ -81,17 +81,21 @@ jobs:
           ref: ${{ github.head_ref || github.ref }}
       - name: Check ray() calls
         uses: code16/detect-laravel-ray-action@v1
+      # Always runs (in background, so it's free): `wait` doesn't support `if`, and waiting on
+      # a skipped step is undocumented. npm cache only when needed (it requires a lock file).
+      - name: Setup Node
+        id: setup-node
+        background: true
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: lts/*
+          cache: ${{ (inputs.has-browser-tests || inputs.has-browsershot) && 'npm' || '' }}
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
         with:
           php-version: ${{ inputs.php-version }}
           github-token: ${{ secrets.COMPOSER_AUTH_TOKEN }}
           extensions: mbstring, dom, fileinfo, mysql
-      - if: ${{ inputs.has-browser-tests || inputs.has-browsershot }}
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version: lts/*
-          cache: 'npm'
       - name: Add github token to composer config
         run: |
           if [ -n "${{ secrets.FLUX_USERNAME }}" ] && [ -n "${{ secrets.FLUX_LICENSE_KEY }}" ]; then
@@ -113,6 +117,8 @@ jobs:
         id: composer-install
         background: true
         run: composer install --prefer-dist
+      # Node PATH/env from setup-node is only available after waiting for it
+      - wait: setup-node
       # npm ci and the puppeteer install both write node_modules: they stay sequential
       - if: ${{ inputs.has-browser-tests }}
         name: Install NPM dependencies
@@ -124,7 +130,8 @@ jobs:
       - if: ${{ inputs.has-browser-tests }}
         name: Install Playwright Browsers
         background: true
-        run: npx playwright install chromium --with-deps
+        # No --with-deps: system libs are already on ubuntu-latest (Chrome is preinstalled)
+        run: npx playwright install chromium
       - if: ${{ inputs.has-browsershot }}
         name: Install Chrome (Browsershot)
         background: true
