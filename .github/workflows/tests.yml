@@ -109,29 +109,38 @@ jobs:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock', '**/composer.json') }}
           restore-keys: ${{ runner.os }}-composer-
-      - parallel:
-          - name: Install Composer dependencies
-            run: composer install --prefer-dist
-          # Node steps share node_modules, so they stay sequential within a single step
-          - if: ${{ inputs.has-browser-tests || inputs.has-browsershot }}
-            name: Install NPM dependencies and browsers
-            run: |
-              if [ "${{ inputs.has-browser-tests }}" = "true" ]; then
-                npm ci
-              fi
-              if [ "${{ inputs.has-browsershot }}" = "true" ]; then
-                npm install --no-save puppeteer
-                npx puppeteer browsers install chrome
-                npx puppeteer browsers install chrome-headless-shell
-              fi
-              if [ "${{ inputs.has-browser-tests }}" = "true" ]; then
-                npx playwright install chromium --with-deps
-              fi
+      - name: Install Composer dependencies
+        id: composer-install
+        background: true
+        run: composer install --prefer-dist
+      # npm ci and the puppeteer install both write node_modules: they stay sequential
+      - if: ${{ inputs.has-browser-tests }}
+        name: Install NPM dependencies
+        run: npm ci
+      - if: ${{ inputs.has-browsershot }}
+        name: Install Puppeteer (Browsershot)
+        run: npm install --no-save puppeteer
+      # Browser downloads only need node_modules and write to their own cache dirs
+      - if: ${{ inputs.has-browser-tests }}
+        name: Install Playwright Browsers
+        background: true
+        run: npx playwright install chromium --with-deps
+      - if: ${{ inputs.has-browsershot }}
+        name: Install Chrome (Browsershot)
+        background: true
+        run: npx puppeteer browsers install chrome
+      - if: ${{ inputs.has-browsershot }}
+        name: Install Chrome headless shell (Browsershot)
+        background: true
+        run: npx puppeteer browsers install chrome-headless-shell
+      - wait: composer-install
       - name: Run Security Audit
         run: composer audit
+      # Assets may import from vendor/ (Flux, Sharp...): needs Composer, not the browsers
       - if: ${{ inputs.has-browser-tests }}
         name: Build assets
         run: npm run build
+      - wait-all:
       - if: ${{ inputs.setup-command }}
         name: Project setup
         run: ${{ inputs.setup-command }}
