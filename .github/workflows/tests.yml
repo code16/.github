@@ -37,6 +37,10 @@ on:
         description: 'Whether to update shards'
         type: boolean
         default: false
+      parallel:
+        description: 'Whether to run Pest tests in parallel (--parallel), one process per CPU'
+        type: boolean
+        default: false
     secrets:
       FLUX_USERNAME:
         description: 'Flux username'
@@ -142,7 +146,8 @@ jobs:
           elif [ -f ./vendor/bin/pest ]; then
             ./vendor/bin/pest --ci \
               ${{ inputs.update-shards == true && '--update-shards' || '' }} \
-              ${{ inputs.shard != '' && format('--shard={0}', inputs.shard) || '' }}
+              ${{ inputs.shard != '' && format('--shard={0}', inputs.shard) || '' }} \
+              ${{ inputs.parallel == true && '--parallel' || '' }}
           else
             ./vendor/bin/phpunit --colors=never
           fi
